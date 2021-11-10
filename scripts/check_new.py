@@ -1,11 +1,21 @@
 from bs4 import BeautifulSoup
 import feedparser
+import json
+import telegram
 import time
 
 '''
 Controlla se è uscito un nuovo bollettino
 Se si, aggiungi l'url del PDF al log.txt
 '''
+
+def notify(message):
+    with open('./config.json', 'r') as keys_file:
+        k = json.load(keys_file)
+        token = k['telegram_token']
+        chat_id = k['telegram_chat_id']
+    bot = telegram.Bot(token=token)
+    bot.sendMessage(chat_id=chat_id, text=message)
 
 def parse(link):
     html = requests.get(link)
@@ -25,11 +35,14 @@ def check(url):
             newfile = parse(link)
             with open("log.txt","w") as log:
                 if newfile not in log.read():
+                    notify("Nuovo PDF: "+newfile)
                     log.write(newfile+"\n")
     except:
         pass
     finally:
         time.sleep(30)
+
+notify("Bot avviato.")
 
 while True:
     check('https://www.regione.sicilia.it/feed')
