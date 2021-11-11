@@ -34,10 +34,11 @@ def check(url):
         link = f[0]['links'][0]['href']
         if(link):
             newfile = parse(link, url)
-            with open("log.txt","a+") as log:
+            with open("log.txt","r+") as log:
                 if newfile not in log.read():
                     notify("Nuovo PDF: "+newfile)
                     log.write(newfile+"\n")
+                    log.close()
     except Exception as e:
         print(e)
     finally:
