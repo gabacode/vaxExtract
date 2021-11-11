@@ -33,14 +33,15 @@ def parse(link, url):
 
 def check(url):
     try:
-        feed = feedparser.parse(url)
+        feed = feedparser.parse(url+'/feed')
         f = [field for field in feed['entries'] if "bollettino settimanale" in field['title']]
         link = f[0]['links'][0]['href']
         if(link):
             newfile = parse(link, url)
+            print(newfile)
             with open("log.txt","r+") as log:
                 if newfile not in log.read():
-                    notify("Nuovo PDF: "+newfile)
+                    #notify("Nuovo PDF: "+newfile)
                     log.write(newfile+"\n")
                     log.close()
     except Exception as e:
@@ -49,4 +50,4 @@ def check(url):
         time.sleep(30)
 
 while True:
-    check('https://www.regione.sicilia.it/feed')
+    check('https://www.regione.sicilia.it')
