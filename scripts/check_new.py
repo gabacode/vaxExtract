@@ -41,7 +41,7 @@ def check(url):
             print(newfile)
             with open("log.txt","r+") as log:
                 if newfile not in log.read():
-                    #notify("Nuovo PDF: "+newfile)
+                    notify("Nuovo PDF: "+newfile)
                     log.write(newfile+"\n")
                     log.close()
     except Exception as e:
