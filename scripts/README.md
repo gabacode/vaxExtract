@@ -1,6 +1,6 @@
 ## check_new.py
 
-Controlla se è uscito un nuovo bollettino. Se si, aggiungi l'url del PDF al log.txt
+Controlla se è uscito un nuovo bollettino. Se si, aggiungi l'url del PDF al log.txt, e segnala tramite BOT Telegram.
 
 Start:
 
