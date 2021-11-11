@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 import feedparser
 import json
+import os
 import requests
 import telegram
 import time
@@ -9,6 +10,9 @@ import time
 Controlla se è uscito un nuovo bollettino
 Se si, aggiungi l'url del PDF al log.txt
 '''
+
+if not os.path.exists('log.txt'):
+    open('log.txt', 'w').close()
 
 def notify(message):
     with open('./config.json', 'r') as keys_file:
