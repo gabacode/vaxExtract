@@ -44,7 +44,5 @@ def check(url):
     finally:
         time.sleep(30)
 
-notify("Bot avviato.")
-
 while True:
     check('https://www.regione.sicilia.it/feed')
