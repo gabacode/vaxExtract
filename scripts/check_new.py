@@ -40,9 +40,9 @@ def check(url):
             newfile = parse(link, url)
             with open("log.txt","r+") as log:
                 if newfile not in log.read():
-                    notify("Nuovo PDF: "+newfile)
                     log.write(newfile+"\n")
                     log.close()
+                    notify("Nuovo PDF: "+newfile)
     except Exception as e:
         print(e)
     finally:
