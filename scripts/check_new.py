@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 import feedparser
 import json
+import requests
 import telegram
 import time
 
@@ -17,7 +18,7 @@ def notify(message):
     bot = telegram.Bot(token=token)
     bot.sendMessage(chat_id=chat_id, text=message)
 
-def parse(link):
+def parse(link, url):
     html = requests.get(link)
     soup = BeautifulSoup(html.text, 'html.parser')
     links = soup.find_all('a')
@@ -32,13 +33,13 @@ def check(url):
         f = [field for field in feed['entries'] if "bollettino settimanale" in field['title']]
         link = f[0]['links'][0]['href']
         if(link):
-            newfile = parse(link)
-            with open("log.txt","w") as log:
+            newfile = parse(link, url)
+            with open("log.txt","a+") as log:
                 if newfile not in log.read():
                     notify("Nuovo PDF: "+newfile)
                     log.write(newfile+"\n")
-    except:
-        pass
+    except Exception as e:
+        print(e)
     finally:
         time.sleep(30)
 
