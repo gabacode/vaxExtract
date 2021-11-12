@@ -9,6 +9,7 @@ import time
 '''
 Controlla se è uscito un nuovo bollettino
 Se si, aggiungi l'url del PDF al log.txt
+e manda una notifica tramite bot telegram
 '''
 
 if not os.path.exists('log.txt'):
