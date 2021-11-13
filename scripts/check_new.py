@@ -47,7 +47,7 @@ def check(url):
     except Exception as e:
         print(e)
     finally:
-        time.sleep(30)
+        time.sleep(900)
 
 while True:
     check('https://www.regione.sicilia.it')
