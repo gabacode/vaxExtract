@@ -6,6 +6,7 @@ import locale
 import os
 import pandas as pd
 from PyPDF2 import PdfFileReader
+import re
 import requests
 import time
 import tabula
@@ -50,6 +51,17 @@ def getRanges(file):
 
     return allegati
 
+def getDate(file):
+    '''
+    Estrae la data dalla prima pagina del PDF
+    '''
+    reader = PdfFileReader(file)
+    page = reader.getPage(0)
+    content = page.extractText().replace('\n','')
+    match = re.search(r'\d+/\d+/\d+', content)
+    date = datetime.strptime(match.group(), '%d/%m/%Y').date()
+
+    return date
 
 def parsePDF(link, url):
     '''
@@ -70,22 +82,25 @@ def download(pdf):
     Scarica il PDF e prepara le pagine da leggere
     '''
 
-    # Estrae la data dal nome del PDF e la converte in YYYYMMDD
+    # Scarica il PDF
+    filename = pdf.rsplit('/',1)[-1]
+    r = requests.get(pdf, stream=True)
+    with open('../downloads/'+filename, 'wb') as f:
+        f.write(r.content)
+
+    # Estrai la data dal nome del PDF e aggiungi timestamp
     global date
-    locale.setlocale(locale.LC_TIME, 'it_IT.UTF-8')
-    if "Bollettino%20Dasoe" in pdf:
-        try:
-            date = pdf.rsplit('/', 1)[-1].replace('%20', '-').lstrip('Bollettino-Dasoe').rstrip('.pdf').rsplit('-', 3)[1:]
+
+    try: 
+        date = getDate(path+filename)
+    except:
+        try: 
+            date = filename.rsplit('/', 1)[-1].replace('%20', '-').rstrip('.pdf').rsplit('-', 3)[1:]
             date = datetime.strptime(' '.join(date), '%d %B %Y').date()
         except:
             date = now
-    else:
-        date = now
-
-    # Scarica il PDF e aggiungi timestamp
-    r = requests.get(pdf, stream=True)
-    with open('../downloads/report-'+date.strftime('%Y%m%d')+'.pdf', 'wb') as f:
-        f.write(r.content)
+    finally:
+        os.rename(path+filename, path+'report-'+date.strftime('%Y%m%d')+'.pdf')
 
     # Seleziona il piu recente PDF scaricato
     files = []
