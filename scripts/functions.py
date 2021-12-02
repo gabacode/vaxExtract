@@ -159,6 +159,66 @@ def getVax(vax):
     return csv
 
 
+def getIncidenza(pdf):
+    '''
+    Estrae l'incidenza da file PDF
+    '''
+    reader = PdfFileReader(pdf['file'])
+    pages=pdf['incidenza']
+
+    textes = []
+    try:
+        for i in range(pages[0], pages[-1]+1):
+            page = reader.getPage(i)
+            text = page.extractText()
+            text = text.replace('\n', ' ')
+            textes.append(text[2::])
+    except Exception as e:
+        pass
+
+    out = ' '.join(textes)\
+         .rpartition('settimane')[2]\
+         .rpartition('Totale')[0]\
+         .replace('- ', '-')\
+         .replace('---', '0%')\
+         .replace('  ', ' ')\
+         .replace('  ', ' ')\
+         .replace('  ', ' ')\
+         .replace('%', '')\
+         .replace("O'","Ò").replace("I'","Ì").replace("U'","Ù")\
+         .split()
+
+    new = ""
+    for split in out:
+        if not isDigit(split):
+            new = new + split + ' '
+        if isDigit(split):
+            new = new + ','+ split + ','
+    new = new.replace(',,', ',').replace(' ,', ',').replace(' -','-').split(',')
+
+    it = iter(new)
+    data = list(zip(it, it, it, it))
+
+    df = pd.DataFrame(data, columns = ['comune', 'casi', 'incidenza', 'variazione'])
+    df = df[['comune', 'incidenza', 'casi']]
+
+    incidenza = df[~df["comune"].duplicated(keep="last")]
+    incidenza.reset_index(inplace=True, drop=True)
+
+    comuni = pd.DataFrame(pd.read_csv('https://raw.githubusercontent.com/gabacode/vaxExtract/main/utilities/Elenco-comuni-siciliani.csv', converters={'pro_com_t': '{:0>6}'.format}))
+    out = pd.merge(incidenza, comuni, left_on=incidenza["comune"].str.lower(), right_on=comuni["comune"].str.lower(), how="inner")
+    out.rename(columns = {'comune_y':'comune'}, inplace = True)
+    out = out[['cod_prov','pro_com_t','provincia','comune','incidenza','casi']].sort_values(by=['provincia', 'comune'])
+    out.reset_index(drop=True, inplace=True)
+    out.insert(0, 'data', date.strftime('%Y-%m-%d'))
+
+    #Esporta CSV
+    print('Esporto CSV...')
+    out.to_csv('../dati-csv/incidenza-'+date.strftime('%Y%m%d')+'.csv', index=None, header=True)
+    csv = '../dati-csv/incidenza-'+date.strftime('%Y%m%d')+'.csv'
+
+    return csv
+
 def check(url):
     '''
     Controlla se è uscito un nuovo bollettino
@@ -189,6 +249,17 @@ def check(url):
         print(datetime.now(), e)
     finally:
         time.sleep(900)
+
+
+def isDigit(x):
+    '''
+    True se x contiene un numero
+    '''
+    try:
+        float(x)
+        return True
+    except ValueError:
+        return False
 
 
 def notify(message):
