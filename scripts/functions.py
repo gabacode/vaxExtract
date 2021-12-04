@@ -123,6 +123,10 @@ def download(pdf):
 
 
 def getVax(vax):
+    '''
+    Estrae tabella Vaccini da file PDF
+    '''
+    
     #Leggi il PDF  VAX con tabula-py
     print('Leggo tabella Vaccini...attendi...')
     pdf = tabula.read_pdf(vax['file'], pages=vax['vaccini'], pandas_options={'header': None}, multiple_tables=True, stream=True, silent=True)
@@ -163,9 +167,13 @@ def getIncidenza(pdf):
     '''
     Estrae l'incidenza da file PDF
     '''
+    
+    #Legge le pagine relative all'incidenza
     reader = PdfFileReader(pdf['file'])
     pages=pdf['incidenza']
 
+    #Looppa le pagine, rimuovi numero della pagina e sostituisce breaklines
+    #Appende ad un'unica, grande stringa
     textes = []
     try:
         for i in range(pages[0], pages[-1]+1):
@@ -176,6 +184,7 @@ def getIncidenza(pdf):
     except Exception as e:
         pass
 
+    #Seleziona parti di interesse, formatta elementi ambigui e ritorna una lista
     out = ' '.join(textes)\
          .rpartition('settimane')[2]\
          .rpartition('Totale')[0]\
@@ -188,6 +197,8 @@ def getIncidenza(pdf):
          .replace("O'","Ò").replace("I'","Ì").replace("U'","Ù")\
          .split()
 
+    #Riconosce il nome del comune rispetto ad un numero,
+    #Applica e rimuovi separatori, e ritorna una nuova lista
     new = ""
     for split in out:
         if not isDigit(split):
@@ -196,15 +207,19 @@ def getIncidenza(pdf):
             new = new + ','+ split + ','
     new = new.replace(',,', ',').replace(' ,', ',').replace(' -','-').split(',')
 
+    #Looppa la lista e crea tuple a gruppi di 4
     it = iter(new)
     data = list(zip(it, it, it, it))
 
+    #Crea dataframe
     df = pd.DataFrame(data, columns = ['comune', 'casi', 'incidenza', 'variazione'])
     df = df[['comune', 'incidenza', 'casi']]
 
+    #Rimuovi distretti (duplicati)
     incidenza = df[~df["comune"].duplicated(keep="last")]
     incidenza.reset_index(inplace=True, drop=True)
 
+    #Inner join e recupera info comuni
     comuni = pd.DataFrame(pd.read_csv('https://raw.githubusercontent.com/gabacode/vaxExtract/main/utilities/Elenco-comuni-siciliani.csv', converters={'pro_com_t': '{:0>6}'.format}))
     out = pd.merge(incidenza, comuni, left_on=incidenza["comune"].str.lower(), right_on=comuni["comune"].str.lower(), how="inner")
     out.rename(columns = {'comune_y':'comune'}, inplace = True)
