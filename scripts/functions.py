@@ -256,6 +256,10 @@ def check(url):
                         send(open(getVax(download(newfile)), 'r'))
                     except Exception as e:
                         print(e)
+                    try:
+                        send(open(getIncidenza(download(newfile)), 'r'))
+                    except Exception as e:
+                        print(e)
                     log.write(newfile+"\n")
                     log.close()
                 else:
