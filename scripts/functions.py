@@ -243,8 +243,7 @@ def check(url):
 
     try:
         feed = feedparser.parse(url+'/feed')
-        f = [field for field in feed['entries']
-             if "bollettino settimanale" in field['title']]
+        f = [field for field in feed['entries'] if ("bollettino settimanale" in field['title'] or "a cura del Dasoe" in field['summary'] or "Bollettino settimanale" in field['title'])]
         link = f[0]['links'][0]['href']
         if(link):
             newfile = parsePDF(link, url)
@@ -252,14 +251,14 @@ def check(url):
                 if newfile not in log.read():
                     print(datetime.now(), "Nuovo PDF!")
                     notify("Nuovo PDF: "+newfile)
-                    try:
-                        send(open(getVax(download(newfile)), 'r'))
-                    except Exception as e:
-                        print(e)
-                    try:
-                        send(open(getIncidenza(download(newfile)), 'r'))
-                    except Exception as e:
-                        print(e)
+                    #try:
+                    #    send(open(getVax(download(newfile)), 'r'))
+                    #except Exception as e:
+                    #    print(e)
+                    #try:
+                    #    send(open(getIncidenza(download(newfile)), 'r'))
+                    #except Exception as e:
+                    #    print(e)
                     log.write(newfile+"\n")
                     log.close()
                 else:
